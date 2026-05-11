@@ -34,8 +34,16 @@ export function CategorySectionHeader({
   return (
     <div
       className={cn(
-        'flex items-center gap-1.5 rounded-md transition-colors',
-        variant === 'flat' ? 'px-2 py-1.5' : 'px-1.5 py-1',
+        // `select-none` + `[-webkit-touch-callout:none]` stop the iOS/Android long-press
+        // gesture from starting a text selection or popping the callout menu when the
+        // user is trying to drag the header.
+        'flex items-center gap-1.5 transition-colors select-none [-webkit-touch-callout:none]',
+        // Flat: bleed to screen edges on mobile with only top/bottom borders (matching the
+        // item-row pattern in sortable-item-row.tsx); revert to card-style at sm+.
+        // Compact (kanban columns): always card-style, no bleed.
+        variant === 'flat'
+          ? '-mx-4 border-y px-4 py-1.5 sm:mx-0 sm:rounded-md sm:border sm:px-2'
+          : 'rounded-md border px-1.5 py-1',
         colorClasses?.headerBg ?? 'bg-muted/40',
       )}
     >

@@ -39,8 +39,16 @@ export function SortableItemRow({
     <div
       ref={setNodeRef}
       style={style}
+      {...attributes}
+      {...listeners}
+      aria-label={`${item.title} — long-press or drag to reorder`}
       className={cn(
-        'group flex items-center gap-2 transition-colors',
+        // The whole row is the drag source. TouchSensor's delay-based activation
+        // (configured in the parent DndContext) lets a quick tap fall through to
+        // the checkbox / title / edit handlers, while a 150ms hold starts a drag.
+        // `select-none` + `[-webkit-touch-callout:none]` stop iOS/Android from
+        // turning a long-press into a text-selection / callout gesture.
+        'group flex cursor-grab items-center gap-2 transition-colors select-none [-webkit-touch-callout:none] active:cursor-grabbing',
         variant === 'card'
           ? 'rounded-lg border bg-card p-2'
           : // Flat: edge-to-edge dividers on mobile, card style on sm+.
@@ -49,15 +57,10 @@ export function SortableItemRow({
         isDragging && 'ring-2 ring-primary',
       )}
     >
-      <button
-        type="button"
-        {...attributes}
-        {...listeners}
-        className="cursor-grab touch-none text-muted-foreground/40 hover:text-muted-foreground active:cursor-grabbing"
-        aria-label="Drag to reorder"
-      >
-        <GripVertical className="h-4 w-4" />
-      </button>
+      <GripVertical
+        className="h-4 w-4 shrink-0 text-muted-foreground/40 group-hover:text-muted-foreground"
+        aria-hidden
+      />
       <Checkbox
         checked={item.completed}
         onCheckedChange={() => toggle.mutate({itemId: item.id, completed: item.completed})}
