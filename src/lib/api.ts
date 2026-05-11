@@ -38,6 +38,53 @@ export async function checkAuthStatus(): Promise<AuthStatus> {
   return res.json()
 }
 
+// ---------- Categories ----------
+
+export interface Category {
+  id: number
+  name: string
+  color: string | null
+  icon: string | null
+  sortOrder: number
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CategoryInput {
+  name: string
+  color?: string | null
+  icon?: string | null
+}
+
+export function fetchCategories() {
+  return request<Category[]>('/categories')
+}
+
+export function createCategory(input: CategoryInput) {
+  return request<Category>('/categories', {method: 'POST', body: JSON.stringify(input)})
+}
+
+export function updateCategory(id: number, input: CategoryInput) {
+  return request<Category>(`/categories/${id}`, {method: 'PUT', body: JSON.stringify(input)})
+}
+
+export function deleteCategory(id: number) {
+  return request<{success: boolean}>(`/categories/${id}`, {method: 'DELETE'})
+}
+
+export function fetchCategoryItemCount(id: number) {
+  return request<{count: number}>(`/categories/${id}/item-count`)
+}
+
+export interface ReorderCategoryRow {
+  id: number
+  sortOrder: number
+}
+
+export function reorderCategories(items: ReorderCategoryRow[]) {
+  return request<{success: boolean}>('/categories/reorder', {method: 'PUT', body: JSON.stringify({categories: items})})
+}
+
 // ---------- Items ----------
 
 export interface Item {
@@ -47,6 +94,7 @@ export interface Item {
   dayOfWeek: number | null
   dayOfMonth: number | null
   monthOfQuarter: number | null
+  categoryId: number | null
   sortOrder: number
   createdAt: string
   updatedAt: string
@@ -58,6 +106,7 @@ export interface ItemInput {
   dayOfWeek?: number | null
   dayOfMonth?: number | null
   monthOfQuarter?: number | null
+  categoryId?: number | null
 }
 
 export function fetchItems() {
@@ -81,6 +130,7 @@ export interface ReorderItemRow {
   frequency: Frequency
   sortOrder: number
   dayOfWeek?: number | null
+  categoryId?: number | null
 }
 
 export function reorderItems(items: ReorderItemRow[]) {

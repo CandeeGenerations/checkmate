@@ -1,5 +1,19 @@
 import {sql} from 'drizzle-orm'
-import {index, integer, sqliteTable, text} from 'drizzle-orm/sqlite-core'
+import {index, integer, sqliteTable, text, uniqueIndex} from 'drizzle-orm/sqlite-core'
+
+export const categories = sqliteTable(
+  'categories',
+  {
+    id: integer('id').primaryKey({autoIncrement: true}),
+    name: text('name').notNull(),
+    color: text('color'),
+    icon: text('icon'),
+    sortOrder: integer('sort_order').notNull().default(0),
+    createdAt: text('created_at').notNull().default(sql`(CURRENT_TIMESTAMP)`),
+    updatedAt: text('updated_at').notNull().default(sql`(CURRENT_TIMESTAMP)`),
+  },
+  (table) => [uniqueIndex('categories_name_lower_idx').on(sql`lower(${table.name})`)],
+)
 
 export const items = sqliteTable(
   'items',
@@ -13,11 +27,16 @@ export const items = sqliteTable(
     dayOfMonth: integer('day_of_month'),
     // Quarterly: 1–3 (which month within the quarter). Null = floats.
     monthOfQuarter: integer('month_of_quarter'),
+    // Optional Category. Deleting a Category sets this to null (Item becomes Uncategorized).
+    categoryId: integer('category_id').references(() => categories.id, {onDelete: 'set null'}),
     sortOrder: integer('sort_order').notNull().default(0),
     createdAt: text('created_at').notNull().default(sql`(CURRENT_TIMESTAMP)`),
     updatedAt: text('updated_at').notNull().default(sql`(CURRENT_TIMESTAMP)`),
   },
-  (table) => [index('items_frequency_idx').on(table.frequency)],
+  (table) => [
+    index('items_frequency_idx').on(table.frequency),
+    index('items_category_idx').on(table.categoryId),
+  ],
 )
 
 export const completions = sqliteTable(
