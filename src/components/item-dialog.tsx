@@ -1,6 +1,7 @@
 import {useState} from 'react'
 import {toast} from 'sonner'
 
+import {CategoryCombobox} from '@/components/category-combobox'
 import {Button} from '@/components/ui/button'
 import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle} from '@/components/ui/dialog'
 import {Input} from '@/components/ui/input'
@@ -59,6 +60,7 @@ function ItemForm({
   const [monthOfQuarter, setMonthOfQuarter] = useState<string>(
     initial?.monthOfQuarter == null ? '' : String(initial.monthOfQuarter),
   )
+  const [categoryId, setCategoryId] = useState<number | null>(initial?.categoryId ?? null)
 
   const create = useCreateItem()
   const update = useUpdateItem()
@@ -67,7 +69,7 @@ function ItemForm({
   function buildInput(): ItemInput | {error: string} {
     const t = title.trim()
     if (!t) return {error: 'Title is required'}
-    const input: ItemInput = {title: t, frequency}
+    const input: ItemInput = {title: t, frequency, categoryId}
     if (frequency === 'weekly' && dayOfWeek !== '') input.dayOfWeek = Number(dayOfWeek)
     if (frequency === 'monthly' && dayOfMonth !== '') input.dayOfMonth = Number(dayOfMonth)
     if (frequency === 'quarterly') {
@@ -125,6 +127,11 @@ function ItemForm({
           <div className="space-y-1.5">
             <Label htmlFor="title">Title</Label>
             <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} autoFocus placeholder="e.g. Take out trash" />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Category</Label>
+            <CategoryCombobox value={categoryId} onChange={setCategoryId} />
           </div>
 
           <div className="space-y-1.5">

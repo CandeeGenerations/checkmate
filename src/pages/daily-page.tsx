@@ -2,7 +2,7 @@ import {useState} from 'react'
 
 import {ExportPdfButton} from '@/components/export-pdf-button'
 import {ItemDialog} from '@/components/item-dialog'
-import {SortableFlatList} from '@/components/sortable-flat-list'
+import {SectionedFlatList} from '@/components/sectioned-flat-list'
 import {Spinner} from '@/components/ui/spinner'
 import {usePeriod} from '@/hooks/use-period'
 import type {Item, PeriodItem} from '@/lib/api'
@@ -38,7 +38,7 @@ export function DailyPage() {
         </p>
       )}
 
-      <SortableFlatList
+      <SectionedFlatList
         items={data?.items ?? []}
         frequency="daily"
         date={date}
