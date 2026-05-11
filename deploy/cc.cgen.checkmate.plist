@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>cc.cgen.checkmate</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/cgen01/.local/share/fnm/node-versions/v24.14.0/installation/bin/node</string>
+        <string>/Users/cgen01/.local/share/fnm/node-versions/v24.14.0/installation/lib/node_modules/pnpm/bin/pnpm.cjs</string>
+        <string>dev</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/Users/cgen01/repos/cgen/checkmate</string>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/Users/cgen01/Library/Logs/checkmate.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/cgen01/Library/Logs/checkmate.log</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/Users/cgen01/.local/share/fnm/node-versions/v24.14.0/installation/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <key>AUTH_PASSWORD_HASH</key>
+        <string>__REPLACE_AUTH_PASSWORD_HASH__</string>
+        <key>JWT_SECRET</key>
+        <string>__REPLACE_JWT_SECRET__</string>
+        <key>JWT_EXPIRY</key>
+        <string>7d</string>
+        <key>PORT</key>
+        <string>5186</string>
+    </dict>
+</dict>
+</plist>
