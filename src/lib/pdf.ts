@@ -1,14 +1,18 @@
 import {jsPDF} from 'jspdf'
 
-import type {PeriodItem, PeriodView} from './api'
+import type {Category, PeriodItem, PeriodView} from './api'
+import {groupBySection} from './categories'
 import type {Frequency} from './date'
 import {formatDateLabel, formatDayLabel, WEEKDAY_SHORT} from './date'
 
 const TITLE_FONT = 18
 const SECTION_FONT = 11
 const ITEM_FONT = 11
+const CATEGORY_HEADING_FONT = 12
 const CHECKBOX_SIZE = 12
 const ROW_HEIGHT = 22
+const CATEGORY_HEADING_GAP_ABOVE = 8
+const CATEGORY_HEADING_GAP_BELOW = 4
 const COL_GAP = 8
 
 const FREQUENCY_TITLE: Record<Frequency, string> = {
@@ -18,18 +22,18 @@ const FREQUENCY_TITLE: Record<Frequency, string> = {
   quarterly: 'This quarter',
 }
 
-export function exportPeriodPdf(view: PeriodView): void {
+export function exportPeriodPdf(view: PeriodView, categories: Category[]): void {
   const remaining = view.items.filter((it) => !it.completed)
   if (view.frequency === 'weekly') {
-    renderWeeklyKanban(view, remaining)
+    renderWeeklyKanban(view, remaining, categories)
   } else {
-    renderChecklist(view, remaining)
+    renderChecklist(view, remaining, categories)
   }
 }
 
 // ---------------- Portrait checklist (daily, monthly, quarterly) ----------------
 
-function renderChecklist(view: PeriodView, items: PeriodItem[]): void {
+function renderChecklist(view: PeriodView, items: PeriodItem[], categories: Category[]): void {
   const doc = new jsPDF({orientation: 'portrait', unit: 'pt', format: 'letter'})
   const pageWidth = doc.internal.pageSize.getWidth()
   const pageHeight = doc.internal.pageSize.getHeight()
@@ -59,21 +63,49 @@ function renderChecklist(view: PeriodView, items: PeriodItem[]): void {
     return
   }
 
+  const sections = groupBySection(items, categories)
+  // If the only section is Uncategorized, drop the heading to preserve the pre-Category look.
+  const showHeadings = sections.some((s) => s.category != null)
+
   doc.setFontSize(ITEM_FONT)
-  for (const item of items) {
-    if (y + ROW_HEIGHT > contentBottom) {
-      doc.addPage()
-      y = margin
+  for (const section of sections) {
+    if (showHeadings) {
+      if (y + CATEGORY_HEADING_FONT + CATEGORY_HEADING_GAP_ABOVE > contentBottom) {
+        doc.addPage()
+        y = margin
+      }
+      y += CATEGORY_HEADING_GAP_ABOVE
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(CATEGORY_HEADING_FONT)
+      doc.setTextColor(60, 60, 60)
+      const heading = section.category
+        ? `${section.category.icon ? `${section.category.icon}  ` : ''}${section.category.name}`
+        : 'Uncategorized'
+      doc.text(heading, contentLeft, y)
+      // Thin underline rule across the content width.
+      doc.setDrawColor(200, 200, 200)
+      doc.setLineWidth(0.5)
+      doc.line(contentLeft, y + 4, contentRight, y + 4)
+      y += CATEGORY_HEADING_FONT + CATEGORY_HEADING_GAP_BELOW
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(ITEM_FONT)
+      doc.setTextColor(0, 0, 0)
     }
-    drawCheckbox(doc, contentLeft, y - CHECKBOX_SIZE + 2)
-    doc.setTextColor(0, 0, 0)
-    doc.text(item.title, contentLeft + CHECKBOX_SIZE + 10, y)
-    const meta = checklistMeta(view.frequency, item)
-    if (meta) {
-      doc.setTextColor(140, 140, 140)
-      doc.text(meta, contentRight, y, {align: 'right'})
+    for (const item of section.items) {
+      if (y + ROW_HEIGHT > contentBottom) {
+        doc.addPage()
+        y = margin
+      }
+      drawCheckbox(doc, contentLeft, y - CHECKBOX_SIZE + 2)
+      doc.setTextColor(0, 0, 0)
+      doc.text(item.title, contentLeft + CHECKBOX_SIZE + 10, y)
+      const meta = checklistMeta(view.frequency, item)
+      if (meta) {
+        doc.setTextColor(140, 140, 140)
+        doc.text(meta, contentRight, y, {align: 'right'})
+      }
+      y += ROW_HEIGHT
     }
-    y += ROW_HEIGHT
   }
 
   doc.save(filename(view))
@@ -110,13 +142,12 @@ function labelForBaseFrequency(item: PeriodItem): string {
 
 // ---------------- Landscape weekly kanban (single page) ----------------
 
-function renderWeeklyKanban(view: PeriodView, items: PeriodItem[]): void {
+function renderWeeklyKanban(view: PeriodView, items: PeriodItem[], categories: Category[]): void {
   const doc = new jsPDF({orientation: 'landscape', unit: 'pt', format: 'letter'})
-  const pageWidth = doc.internal.pageSize.getWidth() // ~792pt
-  const pageHeight = doc.internal.pageSize.getHeight() // ~612pt
+  const pageWidth = doc.internal.pageSize.getWidth()
+  const pageHeight = doc.internal.pageSize.getHeight()
   const margin = 32
 
-  // Header.
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(TITLE_FONT)
   doc.text('This week — Checkmate', margin, margin + TITLE_FONT)
@@ -126,27 +157,25 @@ function renderWeeklyKanban(view: PeriodView, items: PeriodItem[]): void {
   doc.text(rangeLabel(view), margin, margin + TITLE_FONT + 14)
   doc.setTextColor(0, 0, 0)
 
-  // Grid.
   const gridTop = margin + TITLE_FONT + 32
   const gridBottom = pageHeight - margin
   const gridLeft = margin
   const gridRight = pageWidth - margin
   const gridWidth = gridRight - gridLeft
-  const numCols = 8 // Unassigned + Sun..Sat
+  const numCols = 8
   const colWidth = (gridWidth - COL_GAP * (numCols - 1)) / numCols
   const headerHeight = 24
   const padding = 6
 
   const columns = groupForKanban(items)
   const headers = ['Unassigned', ...WEEKDAY_SHORT.map((d) => d.full)]
+  const showSubHeadings = items.some((it) => it.categoryId != null)
 
   for (let i = 0; i < numCols; i++) {
     const x = gridLeft + i * (colWidth + COL_GAP)
-    // Column box.
     doc.setDrawColor(180, 180, 180)
     doc.setLineWidth(0.5)
     doc.rect(x, gridTop, colWidth, gridBottom - gridTop, 'S')
-    // Header band.
     doc.setFillColor(245, 245, 245)
     doc.rect(x, gridTop, colWidth, headerHeight, 'F')
     doc.setDrawColor(180, 180, 180)
@@ -156,25 +185,45 @@ function renderWeeklyKanban(view: PeriodView, items: PeriodItem[]): void {
     doc.setTextColor(80, 80, 80)
     doc.text(headers[i], x + colWidth / 2, gridTop + headerHeight - 8, {align: 'center'})
 
-    // Items.
     const colItems = i === 0 ? columns.unassigned : columns.byDay[i - 1]
     const fontSize = ITEM_FONT - 1
     const lineHeight = fontSize + 4
     const textX = x + padding + CHECKBOX_SIZE + 4
     const textMaxWidth = colWidth - padding * 2 - CHECKBOX_SIZE - 4
     let itemY = gridTop + headerHeight + padding + 14
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(fontSize)
-    doc.setTextColor(0, 0, 0)
-    for (const item of colItems) {
-      const lines = doc.splitTextToSize(item.title, textMaxWidth) as string[]
-      const blockHeight = Math.max(ROW_HEIGHT - 2, lines.length * lineHeight + 4)
-      if (itemY + blockHeight > gridBottom - padding) break // hard cap to one page
-      drawCheckbox(doc, x + padding, itemY - CHECKBOX_SIZE + 2, CHECKBOX_SIZE - 2)
-      for (let li = 0; li < lines.length; li++) {
-        doc.text(lines[li], textX, itemY + li * lineHeight)
+
+    const sections = showSubHeadings ? groupBySection(colItems, categories) : [{category: null, items: colItems}]
+
+    for (const section of sections) {
+      // Sub-header (only if we're showing sub-headings and this isn't an empty fallback).
+      if (showSubHeadings && section.items.length > 0) {
+        if (itemY + lineHeight > gridBottom - padding) break
+        doc.setFont('helvetica', 'bold')
+        doc.setFontSize(fontSize)
+        doc.setTextColor(110, 110, 110)
+        const subHeading = section.category
+          ? `${section.category.icon ? `${section.category.icon} ` : ''}${section.category.name}`.toUpperCase()
+          : 'UNCATEGORIZED'
+        const truncated = doc.splitTextToSize(subHeading, textMaxWidth + CHECKBOX_SIZE)[0]
+        doc.text(truncated, x + padding, itemY)
+        itemY += lineHeight
+        doc.setFont('helvetica', 'normal')
+        doc.setTextColor(0, 0, 0)
       }
-      itemY += blockHeight
+
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(fontSize)
+      doc.setTextColor(0, 0, 0)
+      for (const item of section.items) {
+        const lines = doc.splitTextToSize(item.title, textMaxWidth) as string[]
+        const blockHeight = Math.max(ROW_HEIGHT - 2, lines.length * lineHeight + 4)
+        if (itemY + blockHeight > gridBottom - padding) break
+        drawCheckbox(doc, x + padding, itemY - CHECKBOX_SIZE + 2, CHECKBOX_SIZE - 2)
+        for (let li = 0; li < lines.length; li++) {
+          doc.text(lines[li], textX, itemY + li * lineHeight)
+        }
+        itemY += blockHeight
+      }
     }
   }
 

@@ -120,7 +120,11 @@ categoriesRouter.delete('/:id', async (req, res) => {
     res.status(400).json({error: 'Invalid id'})
     return
   }
-  // Items belonging to this Category will have categoryId set to NULL by the FK constraint.
+  // ON DELETE SET NULL is declared on the Drizzle schema, but SQLite's ALTER TABLE ADD COLUMN
+  // can't apply REFERENCES to an existing table — so the constraint isn't enforced at the DB
+  // level for the migrated-in category_id column. Enforce it in the app instead: null-out
+  // any items belonging to this category, then delete it.
+  await db.update(items).set({categoryId: null, updatedAt: new Date().toISOString()}).where(eq(items.categoryId, id))
   await db.delete(categories).where(eq(categories.id, id))
   res.json({success: true})
 })
