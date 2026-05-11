@@ -50,15 +50,24 @@ interface SectionState {
   items: PeriodItem[]
 }
 
-export function SectionedFlatList({items, frequency, date, onEdit, metaLabel}: SectionedFlatListProps) {
-  const {data: categories = []} = useCategories()
+// Module-scope sentinels so consecutive renders during the loading phase see the same `[]`
+// reference. Without these, `data ?? []` mints a fresh array on each render, the reset-on-prop-
+// change branch below trips every render, and React aborts with "Too many re-renders."
+const EMPTY_CATEGORIES: Category[] = []
+const EMPTY_ITEMS: PeriodItem[] = []
+
+export function SectionedFlatList({items: rawItems, frequency, date, onEdit, metaLabel}: SectionedFlatListProps) {
+  const {data: categoriesData} = useCategories()
+  const categories = categoriesData ?? EMPTY_CATEGORIES
+  const items = rawItems.length === 0 ? EMPTY_ITEMS : rawItems
   const reorderItems = useReorderItems()
   const reorderCategories = useReorderCategories()
 
   // Local optimistic mirror of section layout. Resynced when the server data or category list
-  // changes (same render-time-reset pattern used elsewhere in this codebase).
-  const initial = groupBySection(items, categories)
-  const [sections, setSections] = useState<SectionState[]>(initial)
+  // changes (same render-time-reset pattern used elsewhere in this codebase). Requires items
+  // and categories to be reference-stable across renders when their contents are unchanged —
+  // see the EMPTY_* sentinels above.
+  const [sections, setSections] = useState<SectionState[]>(() => groupBySection(items, categories))
   const [prevItems, setPrevItems] = useState(items)
   const [prevCategories, setPrevCategories] = useState(categories)
   if (items !== prevItems || categories !== prevCategories) {
