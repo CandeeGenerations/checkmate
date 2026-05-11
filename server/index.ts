@@ -8,6 +8,7 @@ import {fileURLToPath} from 'url'
 import './db/index.js'
 import {requireAuth} from './middleware/auth.js'
 import {authRouter} from './routes/auth.js'
+import {categoriesRouter} from './routes/categories.js'
 import {completionsRouter} from './routes/completions.js'
 import {itemsRouter} from './routes/items.js'
 import {periodRouter} from './routes/period.js'
@@ -26,6 +27,7 @@ app.use('/api/auth', authRouter)
 // Auth gate for everything below.
 app.use('/api', requireAuth)
 app.use('/api/items', itemsRouter)
+app.use('/api/categories', categoriesRouter)
 app.use('/api/completions', completionsRouter)
 app.use('/api/period', periodRouter)
 

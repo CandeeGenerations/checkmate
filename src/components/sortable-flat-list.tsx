@@ -1,22 +1,21 @@
+import {SortableItemRow} from '@/components/sortable-item-row'
+import {useReorderItems} from '@/hooks/use-items'
+import type {PeriodItem} from '@/lib/api'
+import type {Frequency} from '@/lib/date'
 import {
-  closestCenter,
   DndContext,
   type DragEndEvent,
   DragOverlay,
   type DragStartEvent,
   PointerSensor,
   TouchSensor,
+  closestCenter,
   useSensor,
   useSensors,
 } from '@dnd-kit/core'
-import {arrayMove, SortableContext, verticalListSortingStrategy} from '@dnd-kit/sortable'
+import {SortableContext, arrayMove, verticalListSortingStrategy} from '@dnd-kit/sortable'
 import {useState} from 'react'
 import {toast} from 'sonner'
-
-import {SortableItemRow} from '@/components/sortable-item-row'
-import {useReorderItems} from '@/hooks/use-items'
-import type {PeriodItem} from '@/lib/api'
-import type {Frequency} from '@/lib/date'
 
 interface SortableFlatListProps {
   items: PeriodItem[]
@@ -63,7 +62,7 @@ export function SortableFlatList({items, frequency, date, onEdit, metaLabel}: So
     reorder.mutate(rows, {onError: (err) => toast.error(err instanceof Error ? err.message : 'Reorder failed')})
   }
 
-  const active = activeId == null ? null : local.find((it) => it.id === activeId) ?? null
+  const active = activeId == null ? null : (local.find((it) => it.id === activeId) ?? null)
 
   return (
     <DndContext

@@ -1,9 +1,9 @@
+import {and, asc, eq, isNull, max} from 'drizzle-orm'
 import type {Request, Response} from 'express'
 import {Router} from 'express'
-import {asc, eq, max} from 'drizzle-orm'
 
 import {db} from '../db/index.js'
-import {items} from '../db/schema.js'
+import {categories, items} from '../db/schema.js'
 import type {Frequency} from '../lib/date.js'
 
 export const itemsRouter = Router()
@@ -16,6 +16,7 @@ interface ItemPayload {
   dayOfWeek?: unknown
   dayOfMonth?: unknown
   monthOfQuarter?: unknown
+  categoryId?: unknown
 }
 
 interface NormalizedItem {
@@ -24,9 +25,10 @@ interface NormalizedItem {
   dayOfWeek: number | null
   dayOfMonth: number | null
   monthOfQuarter: number | null
+  categoryId: number | null
 }
 
-function normalize(payload: ItemPayload): NormalizedItem | {error: string} {
+async function normalize(payload: ItemPayload): Promise<NormalizedItem | {error: string}> {
   const title = typeof payload.title === 'string' ? payload.title.trim() : ''
   if (!title) return {error: 'Title is required'}
 
@@ -50,7 +52,8 @@ function normalize(payload: ItemPayload): NormalizedItem | {error: string} {
   if (frequency === 'quarterly') {
     const haveMonth = payload.monthOfQuarter != null
     const haveDay = payload.dayOfMonth != null
-    if (haveMonth !== haveDay) return {error: 'Quarterly assignment needs both monthOfQuarter and dayOfMonth, or neither'}
+    if (haveMonth !== haveDay)
+      return {error: 'Quarterly assignment needs both monthOfQuarter and dayOfMonth, or neither'}
     if (haveMonth && haveDay) {
       const mq = Number(payload.monthOfQuarter)
       const d = Number(payload.dayOfMonth)
@@ -61,11 +64,30 @@ function normalize(payload: ItemPayload): NormalizedItem | {error: string} {
     }
   }
 
-  return {title, frequency, dayOfWeek, dayOfMonth, monthOfQuarter}
+  let categoryId: number | null = null
+  if (payload.categoryId != null) {
+    const cid = Number(payload.categoryId)
+    if (!Number.isInteger(cid)) return {error: 'categoryId must be an integer'}
+    const [cat] = await db.select({id: categories.id}).from(categories).where(eq(categories.id, cid)).limit(1)
+    if (!cat) return {error: 'Category not found'}
+    categoryId = cid
+  }
+
+  return {title, frequency, dayOfWeek, dayOfMonth, monthOfQuarter, categoryId}
 }
 
-async function nextSortOrder(frequency: Frequency): Promise<number> {
-  const [row] = await db.select({m: max(items.sortOrder)}).from(items).where(eq(items.frequency, frequency))
+// Next sort order *within a (frequency, category) bucket*.
+// Categories now act as a second axis, so an item appended to "Kitchen" / monthly should not
+// fight for ordering with items appended to "Yard" / monthly.
+async function nextSortOrder(frequency: Frequency, categoryId: number | null): Promise<number> {
+  const where =
+    categoryId == null
+      ? and(eq(items.frequency, frequency), isNull(items.categoryId))
+      : and(eq(items.frequency, frequency), eq(items.categoryId, categoryId))
+  const [row] = await db
+    .select({m: max(items.sortOrder)})
+    .from(items)
+    .where(where)
   return (row?.m ?? 0) + 1
 }
 
@@ -75,13 +97,16 @@ itemsRouter.get('/', async (_req, res) => {
 })
 
 itemsRouter.post('/', async (req, res) => {
-  const norm = normalize(req.body)
+  const norm = await normalize(req.body)
   if ('error' in norm) {
     res.status(400).json({error: norm.error})
     return
   }
-  const sortOrder = await nextSortOrder(norm.frequency)
-  const [created] = await db.insert(items).values({...norm, sortOrder}).returning()
+  const sortOrder = await nextSortOrder(norm.frequency, norm.categoryId)
+  const [created] = await db
+    .insert(items)
+    .values({...norm, sortOrder})
+    .returning()
   res.status(201).json(created)
 })
 
@@ -91,7 +116,15 @@ itemsRouter.put('/reorder', async (req, res) => {
     res.status(400).json({error: 'items array required'})
     return
   }
-  const updates: Array<{id: number; frequency: Frequency; sortOrder: number; dayOfWeek?: number | null}> = []
+  // Each row may also carry a target categoryId (drag across sections) and/or dayOfWeek
+  // (drag across day-columns in Weekly). Missing fields are left untouched.
+  const updates: Array<{
+    id: number
+    frequency: Frequency
+    sortOrder: number
+    dayOfWeek?: number | null
+    categoryId?: number | null
+  }> = []
   for (const r of rows) {
     if (!r || typeof r !== 'object') continue
     const obj = r as Record<string, unknown>
@@ -99,7 +132,13 @@ itemsRouter.put('/reorder', async (req, res) => {
     const sortOrder = Number(obj.sortOrder)
     const frequency = obj.frequency as Frequency
     if (!Number.isInteger(id) || !Number.isInteger(sortOrder) || !FREQUENCIES.includes(frequency)) continue
-    const upd: {id: number; frequency: Frequency; sortOrder: number; dayOfWeek?: number | null} = {
+    const upd: {
+      id: number
+      frequency: Frequency
+      sortOrder: number
+      dayOfWeek?: number | null
+      categoryId?: number | null
+    } = {
       id,
       frequency,
       sortOrder,
@@ -113,12 +152,22 @@ itemsRouter.put('/reorder', async (req, res) => {
         if (Number.isInteger(n) && n >= 0 && n <= 6) upd.dayOfWeek = n
       }
     }
+    if ('categoryId' in obj) {
+      const cid = obj.categoryId
+      if (cid == null) {
+        upd.categoryId = null
+      } else {
+        const n = Number(cid)
+        if (Number.isInteger(n)) upd.categoryId = n
+      }
+    }
     updates.push(upd)
   }
   const now = new Date().toISOString()
   for (const u of updates) {
     const set: Record<string, unknown> = {sortOrder: u.sortOrder, frequency: u.frequency, updatedAt: now}
     if ('dayOfWeek' in u) set.dayOfWeek = u.dayOfWeek
+    if ('categoryId' in u) set.categoryId = u.categoryId
     await db.update(items).set(set).where(eq(items.id, u.id))
   }
   res.json({success: true})
@@ -135,13 +184,14 @@ itemsRouter.put('/:id', async (req: Request, res: Response) => {
     res.status(404).json({error: 'Item not found'})
     return
   }
-  const norm = normalize(req.body)
+  const norm = await normalize(req.body)
   if ('error' in norm) {
     res.status(400).json({error: norm.error})
     return
   }
-  // If frequency changed, place at the end of the new bucket and clear day fields not honored above.
-  const sortOrder = norm.frequency === existing.frequency ? existing.sortOrder : await nextSortOrder(norm.frequency)
+  // If the (frequency, category) bucket changed, append to the end of the new bucket.
+  const movedBucket = norm.frequency !== existing.frequency || norm.categoryId !== existing.categoryId
+  const sortOrder = movedBucket ? await nextSortOrder(norm.frequency, norm.categoryId) : existing.sortOrder
   const [updated] = await db
     .update(items)
     .set({...norm, sortOrder, updatedAt: new Date().toISOString()})
@@ -159,4 +209,3 @@ itemsRouter.delete('/:id', async (req, res) => {
   await db.delete(items).where(eq(items.id, id))
   res.json({success: true})
 })
-

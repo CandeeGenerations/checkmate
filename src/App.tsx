@@ -1,12 +1,11 @@
-import {QueryClient, QueryClientProvider} from '@tanstack/react-query'
-import {BrowserRouter, Navigate, Route, Routes} from 'react-router-dom'
-
 import {Toaster} from '@/components/ui/sonner'
 import {AppShell} from '@/pages/app-shell'
 import {DailyPage} from '@/pages/daily-page'
 import {MonthlyPage} from '@/pages/monthly-page'
 import {QuarterlyPage} from '@/pages/quarterly-page'
 import {WeeklyPage} from '@/pages/weekly-page'
+import {QueryClient, QueryClientProvider} from '@tanstack/react-query'
+import {BrowserRouter, Navigate, Route, Routes} from 'react-router-dom'
 
 const queryClient = new QueryClient({
   defaultOptions: {queries: {staleTime: 30_000, refetchOnWindowFocus: false}},

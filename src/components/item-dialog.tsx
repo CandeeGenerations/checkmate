@@ -1,6 +1,4 @@
-import {useState} from 'react'
-import {toast} from 'sonner'
-
+import {CategoryCombobox} from '@/components/category-combobox'
 import {Button} from '@/components/ui/button'
 import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle} from '@/components/ui/dialog'
 import {Input} from '@/components/ui/input'
@@ -9,6 +7,8 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/c
 import {useCreateItem, useDeleteItem, useUpdateItem} from '@/hooks/use-items'
 import type {Item, ItemInput} from '@/lib/api'
 import type {Frequency} from '@/lib/date'
+import {useState} from 'react'
+import {toast} from 'sonner'
 
 interface ItemDialogProps {
   open: boolean
@@ -59,6 +59,7 @@ function ItemForm({
   const [monthOfQuarter, setMonthOfQuarter] = useState<string>(
     initial?.monthOfQuarter == null ? '' : String(initial.monthOfQuarter),
   )
+  const [categoryId, setCategoryId] = useState<number | null>(initial?.categoryId ?? null)
 
   const create = useCreateItem()
   const update = useUpdateItem()
@@ -67,7 +68,7 @@ function ItemForm({
   function buildInput(): ItemInput | {error: string} {
     const t = title.trim()
     if (!t) return {error: 'Title is required'}
-    const input: ItemInput = {title: t, frequency}
+    const input: ItemInput = {title: t, frequency, categoryId}
     if (frequency === 'weekly' && dayOfWeek !== '') input.dayOfWeek = Number(dayOfWeek)
     if (frequency === 'monthly' && dayOfMonth !== '') input.dayOfMonth = Number(dayOfMonth)
     if (frequency === 'quarterly') {
@@ -117,52 +118,100 @@ function ItemForm({
 
   return (
     <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>{isEdit ? 'Edit item' : 'New item'}</DialogTitle>
-          <DialogDescription>{isEdit ? 'Adjust this recurring item.' : 'Add a recurring item to your list.'}</DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSave} className="space-y-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="title">Title</Label>
-            <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} autoFocus placeholder="e.g. Take out trash" />
-          </div>
+      <DialogHeader>
+        <DialogTitle>{isEdit ? 'Edit item' : 'New item'}</DialogTitle>
+        <DialogDescription>
+          {isEdit ? 'Adjust this recurring item.' : 'Add a recurring item to your list.'}
+        </DialogDescription>
+      </DialogHeader>
+      <form onSubmit={handleSave} className="space-y-4">
+        <div className="space-y-1.5">
+          <Label htmlFor="title">Title</Label>
+          <Input
+            id="title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            autoFocus
+            placeholder="e.g. Take out trash"
+          />
+        </div>
 
+        <div className="space-y-1.5">
+          <Label>Category</Label>
+          <CategoryCombobox value={categoryId} onChange={setCategoryId} />
+        </div>
+
+        <div className="space-y-1.5">
+          <Label>Frequency</Label>
+          <Select value={frequency} onValueChange={(v) => setFrequency(v as Frequency)}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {FREQUENCY_OPTIONS.map((o) => (
+                <SelectItem key={o.value} value={o.value}>
+                  {o.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {frequency === 'weekly' && (
           <div className="space-y-1.5">
-            <Label>Frequency</Label>
-            <Select value={frequency} onValueChange={(v) => setFrequency(v as Frequency)}>
+            <Label>Day of week</Label>
+            <Select value={dayOfWeek || 'none'} onValueChange={(v) => setDayOfWeek(v === 'none' ? '' : v)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {FREQUENCY_OPTIONS.map((o) => (
-                  <SelectItem key={o.value} value={o.value}>
-                    {o.label}
+                <SelectItem value="none">Unassigned (any day this week)</SelectItem>
+                {WEEKDAYS.map((label, i) => (
+                  <SelectItem key={i} value={String(i)}>
+                    {label}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
+        )}
 
-          {frequency === 'weekly' && (
+        {frequency === 'monthly' && (
+          <div className="space-y-1.5">
+            <Label>Day of month</Label>
+            <Select value={dayOfMonth || 'none'} onValueChange={(v) => setDayOfMonth(v === 'none' ? '' : v)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Unassigned (any day this month)</SelectItem>
+                {Array.from({length: 31}, (_, i) => i + 1).map((d) => (
+                  <SelectItem key={d} value={String(d)}>
+                    Day {d}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">Days past the end of a short month clamp to the last day.</p>
+          </div>
+        )}
+
+        {frequency === 'quarterly' && (
+          <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label>Day of week</Label>
-              <Select value={dayOfWeek || 'none'} onValueChange={(v) => setDayOfWeek(v === 'none' ? '' : v)}>
+              <Label>Month of quarter</Label>
+              <Select value={monthOfQuarter || 'none'} onValueChange={(v) => setMonthOfQuarter(v === 'none' ? '' : v)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Unassigned (any day this week)</SelectItem>
-                  {WEEKDAYS.map((label, i) => (
-                    <SelectItem key={i} value={String(i)}>
-                      {label}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="none">Unassigned</SelectItem>
+                  <SelectItem value="1">1st month</SelectItem>
+                  <SelectItem value="2">2nd month</SelectItem>
+                  <SelectItem value="3">3rd month</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-          )}
-
-          {frequency === 'monthly' && (
             <div className="space-y-1.5">
               <Label>Day of month</Label>
               <Select value={dayOfMonth || 'none'} onValueChange={(v) => setDayOfMonth(v === 'none' ? '' : v)}>
@@ -170,7 +219,7 @@ function ItemForm({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Unassigned (any day this month)</SelectItem>
+                  <SelectItem value="none">Unassigned</SelectItem>
                   {Array.from({length: 31}, (_, i) => i + 1).map((d) => (
                     <SelectItem key={d} value={String(d)}>
                       Day {d}
@@ -178,63 +227,33 @@ function ItemForm({
                   ))}
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground">Days past the end of a short month clamp to the last day.</p>
             </div>
-          )}
+          </div>
+        )}
 
-          {frequency === 'quarterly' && (
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label>Month of quarter</Label>
-                <Select value={monthOfQuarter || 'none'} onValueChange={(v) => setMonthOfQuarter(v === 'none' ? '' : v)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Unassigned</SelectItem>
-                    <SelectItem value="1">1st month</SelectItem>
-                    <SelectItem value="2">2nd month</SelectItem>
-                    <SelectItem value="3">3rd month</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label>Day of month</Label>
-                <Select value={dayOfMonth || 'none'} onValueChange={(v) => setDayOfMonth(v === 'none' ? '' : v)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Unassigned</SelectItem>
-                    {Array.from({length: 31}, (_, i) => i + 1).map((d) => (
-                      <SelectItem key={d} value={String(d)}>
-                        Day {d}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+        <DialogFooter className="flex-row justify-between sm:justify-between">
+          {isEdit ? (
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={handleDelete}
+              className="text-destructive hover:text-destructive"
+            >
+              Delete
+            </Button>
+          ) : (
+            <span />
           )}
-
-          <DialogFooter className="flex-row justify-between sm:justify-between">
-            {isEdit ? (
-              <Button type="button" variant="ghost" onClick={handleDelete} className="text-destructive hover:text-destructive">
-                Delete
-              </Button>
-            ) : (
-              <span />
-            )}
-            <div className="flex gap-2">
-              <Button type="button" variant="outline" onClick={onClose}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={create.isPending || update.isPending}>
-                {isEdit ? 'Save' : 'Add'}
-              </Button>
-            </div>
-          </DialogFooter>
-        </form>
-      </DialogContent>
+          <div className="flex gap-2">
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={create.isPending || update.isPending}>
+              {isEdit ? 'Save' : 'Add'}
+            </Button>
+          </div>
+        </DialogFooter>
+      </form>
+    </DialogContent>
   )
 }

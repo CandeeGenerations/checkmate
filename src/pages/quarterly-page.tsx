@@ -1,12 +1,11 @@
-import {useState} from 'react'
-
 import {ExportPdfButton} from '@/components/export-pdf-button'
 import {ItemDialog} from '@/components/item-dialog'
-import {SortableFlatList} from '@/components/sortable-flat-list'
+import {SectionedFlatList} from '@/components/sectioned-flat-list'
 import {Spinner} from '@/components/ui/spinner'
 import {usePeriod} from '@/hooks/use-period'
 import type {Item} from '@/lib/api'
 import {formatDateLabel, todayISO} from '@/lib/date'
+import {useState} from 'react'
 
 const MONTH_OF_QUARTER = ['1st', '2nd', '3rd']
 
@@ -45,7 +44,7 @@ export function QuarterlyPage() {
         </p>
       )}
 
-      <SortableFlatList
+      <SectionedFlatList
         items={sorted}
         frequency="quarterly"
         date={date}

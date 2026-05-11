@@ -47,4 +47,4 @@ jobs:
       - name: Install deps
         run: pnpm install --ignore-scripts
       - name: Run ESLint
-        run: pnpm run eslint
+        run: pnpm run lint

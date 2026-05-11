@@ -1,5 +1,17 @@
+import {CategorySectionHeader} from '@/components/category-section-header'
+import {ExportPdfButton} from '@/components/export-pdf-button'
+import {ItemDialog} from '@/components/item-dialog'
+import {SortableItemRow} from '@/components/sortable-item-row'
+import {Spinner} from '@/components/ui/spinner'
+import {useCategories} from '@/hooks/use-categories'
+import {useReorderItems} from '@/hooks/use-items'
+import {usePeriod} from '@/hooks/use-period'
+import {useSectionCollapse} from '@/hooks/use-section-collapse'
+import type {Category, Item, PeriodItem} from '@/lib/api'
+import {groupBySection} from '@/lib/categories'
+import {WEEKDAY_SHORT, formatDateLabel, todayISO} from '@/lib/date'
+import {cn} from '@/lib/utils'
 import {
-  closestCorners,
   DndContext,
   type DragEndEvent,
   type DragOverEvent,
@@ -7,23 +19,14 @@ import {
   type DragStartEvent,
   PointerSensor,
   TouchSensor,
+  closestCorners,
   useDroppable,
   useSensor,
   useSensors,
 } from '@dnd-kit/core'
-import {arrayMove, SortableContext, verticalListSortingStrategy} from '@dnd-kit/sortable'
+import {SortableContext, arrayMove, verticalListSortingStrategy} from '@dnd-kit/sortable'
 import {useMemo, useState} from 'react'
 import {toast} from 'sonner'
-
-import {ExportPdfButton} from '@/components/export-pdf-button'
-import {ItemDialog} from '@/components/item-dialog'
-import {SortableItemRow} from '@/components/sortable-item-row'
-import {Spinner} from '@/components/ui/spinner'
-import {useReorderItems} from '@/hooks/use-items'
-import {usePeriod} from '@/hooks/use-period'
-import type {Item, PeriodItem} from '@/lib/api'
-import {formatDateLabel, todayISO, WEEKDAY_SHORT} from '@/lib/date'
-import {cn} from '@/lib/utils'
 
 // Column ids: 'unassigned' or 'day-{0..6}'.
 const UNASSIGNED = 'unassigned'
@@ -40,6 +43,7 @@ function dayToCol(dow: number | null): ColumnId {
 export function WeeklyPage() {
   const date = todayISO()
   const {data, isLoading} = usePeriod('weekly', date)
+  const {data: categories = []} = useCategories()
   const reorder = useReorderItems()
   const [editing, setEditing] = useState<Item | null>(null)
   const [activeId, setActiveId] = useState<number | null>(null)
@@ -63,7 +67,7 @@ export function WeeklyPage() {
     return map
   }, [columns])
 
-  const activeItem = activeId == null ? null : itemById.get(activeId) ?? null
+  const activeItem = activeId == null ? null : (itemById.get(activeId) ?? null)
 
   function findContainer(id: number | string): ColumnId | null {
     if (typeof id === 'string' && (COLUMNS as readonly string[]).includes(id)) return id as ColumnId
@@ -96,7 +100,11 @@ export function WeeklyPage() {
       return {
         ...prev,
         [fromCol]: fromItems.filter((it) => it.id !== active.id),
-        [toCol]: [...toItems.slice(0, insertAt), {...moving, dayOfWeek: colDayOfWeek(toCol)}, ...toItems.slice(insertAt)],
+        [toCol]: [
+          ...toItems.slice(0, insertAt),
+          {...moving, dayOfWeek: colDayOfWeek(toCol)},
+          ...toItems.slice(insertAt),
+        ],
       }
     })
   }
@@ -161,10 +169,27 @@ export function WeeklyPage() {
             4 columns visible at iPad widths; the rest scroll. */}
         <div className="-mx-4 min-h-0 flex-1 overflow-x-auto px-4 pb-2">
           <div className="flex h-full gap-3">
-            <Column id={UNASSIGNED} title="Unassigned" items={columns[UNASSIGNED]} date={date} onEdit={setEditing} />
+            <Column
+              id={UNASSIGNED}
+              title="Unassigned"
+              items={columns[UNASSIGNED]}
+              categories={categories}
+              date={date}
+              onEdit={setEditing}
+            />
             {WEEKDAY_SHORT.map((d) => {
               const col: ColumnId = `day-${d.value}` as ColumnId
-              return <Column key={col} id={col} title={d.full} items={columns[col]} date={date} onEdit={setEditing} />
+              return (
+                <Column
+                  key={col}
+                  id={col}
+                  title={d.full}
+                  items={columns[col]}
+                  categories={categories}
+                  date={date}
+                  onEdit={setEditing}
+                />
+              )
             })}
           </div>
         </div>
@@ -187,16 +212,23 @@ function Column({
   id,
   title,
   items,
+  categories,
   date,
   onEdit,
 }: {
   id: ColumnId
   title: string
   items: PeriodItem[]
+  categories: Category[]
   date: string
   onEdit: (item: PeriodItem) => void
 }) {
   const {setNodeRef, isOver} = useDroppable({id})
+  // Reorder items so they cluster by Category — drag visualises against this canonical order.
+  // (A drag across visual sub-sections within the same column will re-cluster on persist.)
+  const sections = groupBySection(items, categories)
+  const clustered = sections.flatMap((s) => s.items)
+  const hasCategorized = sections.some((s) => s.category != null)
   return (
     <div
       ref={setNodeRef}
@@ -209,14 +241,51 @@ function Column({
       )}
     >
       <h3 className="px-1 pb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{title}</h3>
-      <SortableContext items={items.map((it) => it.id)} strategy={verticalListSortingStrategy}>
+      <SortableContext items={clustered.map((it) => it.id)} strategy={verticalListSortingStrategy}>
         <div className="flex-1 space-y-2 overflow-y-auto pr-1">
-          {items.length === 0 && <p className="px-1 py-2 text-xs text-muted-foreground/60">—</p>}
-          {items.map((it) => (
-            <SortableItemRow key={it.id} item={it} viewFrequency="weekly" date={date} onEdit={onEdit} />
+          {clustered.length === 0 && <p className="px-1 py-2 text-xs text-muted-foreground/60">—</p>}
+          {sections.map((section) => (
+            <ColumnSection
+              key={section.category?.id ?? 'uncategorized'}
+              section={section}
+              columnId={id}
+              showHeader={hasCategorized}
+              date={date}
+              onEdit={onEdit}
+            />
           ))}
         </div>
       </SortableContext>
+    </div>
+  )
+}
+
+// One Category sub-section inside a weekly column. The header is rendered only when at least
+// one Category is in use in this column — keeps the pre-Category column look intact.
+function ColumnSection({
+  section,
+  columnId,
+  showHeader,
+  date,
+  onEdit,
+}: {
+  section: ReturnType<typeof groupBySection>[number]
+  columnId: ColumnId
+  showHeader: boolean
+  date: string
+  onEdit: (item: PeriodItem) => void
+}) {
+  const view = `weekly:${columnId}`
+  const [collapsed] = useSectionCollapse(view, section.category?.id ?? null)
+  return (
+    <div className="space-y-1.5">
+      {showHeader && (
+        <CategorySectionHeader category={section.category} view={view} count={section.items.length} variant="compact" />
+      )}
+      {!collapsed &&
+        section.items.map((it) => (
+          <SortableItemRow key={it.id} item={it} viewFrequency="weekly" date={date} onEdit={onEdit} />
+        ))}
     </div>
   )
 }

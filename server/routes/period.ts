@@ -1,5 +1,5 @@
+import {and, asc, gte, inArray, lte} from 'drizzle-orm'
 import {Router} from 'express'
-import {asc, gte, inArray, lte, and} from 'drizzle-orm'
 
 import {db} from '../db/index.js'
 import {completions, items} from '../db/schema.js'
@@ -25,8 +25,7 @@ periodRouter.get('/:frequency', async (req, res) => {
     res.status(400).json({error: 'Invalid frequency'})
     return
   }
-  const date =
-    typeof req.query.date === 'string' && isValidISO(req.query.date) ? req.query.date : todayISO()
+  const date = typeof req.query.date === 'string' && isValidISO(req.query.date) ? req.query.date : todayISO()
 
   // Pull all items first, then narrow. There won't be many — this is a personal app.
   const all = await db.select().from(items).orderBy(asc(items.sortOrder), asc(items.id))

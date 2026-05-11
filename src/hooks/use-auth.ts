@@ -1,4 +1,4 @@
-import {checkAuthStatus, login as apiLogin, logout as apiLogout} from '@/lib/api'
+import {login as apiLogin, logout as apiLogout, checkAuthStatus} from '@/lib/api'
 import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query'
 
 export const AUTH_KEY = ['auth-status'] as const

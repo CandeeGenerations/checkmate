@@ -1,13 +1,12 @@
-import {CalendarClock, CalendarDays, CalendarRange, Plus, Sun, type LucideIcon} from 'lucide-react'
-import {useState} from 'react'
-import {NavLink, Outlet, useLocation} from 'react-router-dom'
-
 import {ItemDialog} from '@/components/item-dialog'
 import {LoginDialog} from '@/components/login-dialog'
 import {Button} from '@/components/ui/button'
 import {useAuth} from '@/hooks/use-auth'
 import type {Frequency} from '@/lib/date'
 import {cn} from '@/lib/utils'
+import {CalendarClock, CalendarDays, CalendarRange, type LucideIcon, Plus, Sun} from 'lucide-react'
+import {useState} from 'react'
+import {NavLink, Outlet, useLocation} from 'react-router-dom'
 
 const TABS: ReadonlyArray<{to: string; label: string; frequency: Frequency; icon: LucideIcon}> = [
   {to: '/daily', label: 'Daily', frequency: 'daily', icon: Sun},
