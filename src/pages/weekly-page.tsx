@@ -1,20 +1,3 @@
-import {
-  closestCorners,
-  DndContext,
-  type DragEndEvent,
-  type DragOverEvent,
-  DragOverlay,
-  type DragStartEvent,
-  PointerSensor,
-  TouchSensor,
-  useDroppable,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core'
-import {arrayMove, SortableContext, verticalListSortingStrategy} from '@dnd-kit/sortable'
-import {useMemo, useState} from 'react'
-import {toast} from 'sonner'
-
 import {CategorySectionHeader} from '@/components/category-section-header'
 import {ExportPdfButton} from '@/components/export-pdf-button'
 import {ItemDialog} from '@/components/item-dialog'
@@ -26,8 +9,24 @@ import {usePeriod} from '@/hooks/use-period'
 import {useSectionCollapse} from '@/hooks/use-section-collapse'
 import type {Category, Item, PeriodItem} from '@/lib/api'
 import {groupBySection} from '@/lib/categories'
-import {formatDateLabel, todayISO, WEEKDAY_SHORT} from '@/lib/date'
+import {WEEKDAY_SHORT, formatDateLabel, todayISO} from '@/lib/date'
 import {cn} from '@/lib/utils'
+import {
+  DndContext,
+  type DragEndEvent,
+  type DragOverEvent,
+  DragOverlay,
+  type DragStartEvent,
+  PointerSensor,
+  TouchSensor,
+  closestCorners,
+  useDroppable,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core'
+import {SortableContext, arrayMove, verticalListSortingStrategy} from '@dnd-kit/sortable'
+import {useMemo, useState} from 'react'
+import {toast} from 'sonner'
 
 // Column ids: 'unassigned' or 'day-{0..6}'.
 const UNASSIGNED = 'unassigned'
@@ -68,7 +67,7 @@ export function WeeklyPage() {
     return map
   }, [columns])
 
-  const activeItem = activeId == null ? null : itemById.get(activeId) ?? null
+  const activeItem = activeId == null ? null : (itemById.get(activeId) ?? null)
 
   function findContainer(id: number | string): ColumnId | null {
     if (typeof id === 'string' && (COLUMNS as readonly string[]).includes(id)) return id as ColumnId
@@ -101,7 +100,11 @@ export function WeeklyPage() {
       return {
         ...prev,
         [fromCol]: fromItems.filter((it) => it.id !== active.id),
-        [toCol]: [...toItems.slice(0, insertAt), {...moving, dayOfWeek: colDayOfWeek(toCol)}, ...toItems.slice(insertAt)],
+        [toCol]: [
+          ...toItems.slice(0, insertAt),
+          {...moving, dayOfWeek: colDayOfWeek(toCol)},
+          ...toItems.slice(insertAt),
+        ],
       }
     })
   }

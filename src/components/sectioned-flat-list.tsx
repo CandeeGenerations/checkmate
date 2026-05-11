@@ -1,22 +1,3 @@
-import {
-  closestCorners,
-  DndContext,
-  type DragEndEvent,
-  type DragOverEvent,
-  DragOverlay,
-  type DragStartEvent,
-  PointerSensor,
-  TouchSensor,
-  useDroppable,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core'
-import {arrayMove, SortableContext, useSortable, verticalListSortingStrategy} from '@dnd-kit/sortable'
-import {CSS} from '@dnd-kit/utilities'
-import {GripVertical} from 'lucide-react'
-import {useMemo, useState} from 'react'
-import {toast} from 'sonner'
-
 import {CategorySectionHeader} from '@/components/category-section-header'
 import {SortableFlatList} from '@/components/sortable-flat-list'
 import {SortableItemRow} from '@/components/sortable-item-row'
@@ -26,6 +7,24 @@ import {useSectionCollapse} from '@/hooks/use-section-collapse'
 import type {Category, PeriodItem} from '@/lib/api'
 import {groupBySection} from '@/lib/categories'
 import type {Frequency} from '@/lib/date'
+import {
+  DndContext,
+  type DragEndEvent,
+  type DragOverEvent,
+  DragOverlay,
+  type DragStartEvent,
+  PointerSensor,
+  TouchSensor,
+  closestCorners,
+  useDroppable,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core'
+import {SortableContext, arrayMove, useSortable, verticalListSortingStrategy} from '@dnd-kit/sortable'
+import {CSS} from '@dnd-kit/utilities'
+import {GripVertical} from 'lucide-react'
+import {useMemo, useState} from 'react'
+import {toast} from 'sonner'
 
 interface SectionedFlatListProps {
   items: PeriodItem[]
@@ -80,20 +79,14 @@ export function SectionedFlatList({items, frequency, date, onEdit, metaLabel}: S
 
   const [activeItemId, setActiveItemId] = useState<number | null>(null)
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null)
-  const activeItem = activeItemId == null ? null : itemById.get(activeItemId) ?? null
+  const activeItem = activeItemId == null ? null : (itemById.get(activeItemId) ?? null)
 
   // Early exit: nothing to show.
   if (sections.length === 0) return null
   // Pre-Category fallback: no named categories at all → render a single flat list (no headers).
   if (namedSections.length === 0) {
     return (
-      <SimpleSortableList
-        items={allItems}
-        frequency={frequency}
-        date={date}
-        onEdit={onEdit}
-        metaLabel={metaLabel}
-      />
+      <SimpleSortableList items={allItems} frequency={frequency} date={date} onEdit={onEdit} metaLabel={metaLabel} />
     )
   }
 

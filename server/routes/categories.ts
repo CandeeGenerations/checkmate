@@ -1,6 +1,6 @@
+import {and, asc, eq, max, ne, sql} from 'drizzle-orm'
 import type {Request, Response} from 'express'
 import {Router} from 'express'
-import {and, asc, eq, max, ne, sql} from 'drizzle-orm'
 
 import {db} from '../db/index.js'
 import {categories, items} from '../db/schema.js'
@@ -32,9 +32,10 @@ function normalize(payload: CategoryPayload): NormalizedCategory | {error: strin
 
 async function nameTaken(name: string, exceptId?: number): Promise<boolean> {
   const lower = name.toLowerCase()
-  const where = exceptId == null
-    ? sql`lower(${categories.name}) = ${lower}`
-    : and(sql`lower(${categories.name}) = ${lower}`, ne(categories.id, exceptId))
+  const where =
+    exceptId == null
+      ? sql`lower(${categories.name}) = ${lower}`
+      : and(sql`lower(${categories.name}) = ${lower}`, ne(categories.id, exceptId))
   const [row] = await db.select({id: categories.id}).from(categories).where(where).limit(1)
   return !!row
 }
@@ -60,7 +61,10 @@ categoriesRouter.post('/', async (req, res) => {
     return
   }
   const sortOrder = await nextSortOrder()
-  const [created] = await db.insert(categories).values({...norm, sortOrder}).returning()
+  const [created] = await db
+    .insert(categories)
+    .values({...norm, sortOrder})
+    .returning()
   res.status(201).json(created)
 })
 

@@ -1,11 +1,10 @@
-import {Pencil} from 'lucide-react'
-
 import {Button} from '@/components/ui/button'
 import {Checkbox} from '@/components/ui/checkbox'
 import {useToggleCompletion} from '@/hooks/use-period'
 import type {PeriodItem} from '@/lib/api'
 import type {Frequency} from '@/lib/date'
 import {cn} from '@/lib/utils'
+import {Pencil} from 'lucide-react'
 
 interface ItemRowProps {
   item: PeriodItem

@@ -1,10 +1,9 @@
-import {Printer} from 'lucide-react'
-import {toast} from 'sonner'
-
 import {Button} from '@/components/ui/button'
 import {useCategories} from '@/hooks/use-categories'
 import type {PeriodView} from '@/lib/api'
 import {exportPeriodPdf} from '@/lib/pdf'
+import {Printer} from 'lucide-react'
+import {toast} from 'sonner'
 
 export function ExportPdfButton({view}: {view: PeriodView | undefined}) {
   const {data: categories = []} = useCategories()

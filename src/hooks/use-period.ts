@@ -1,7 +1,6 @@
-import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query'
-
-import {completeItem, fetchPeriod, type PeriodView, uncompleteItem} from '@/lib/api'
+import {type PeriodView, completeItem, fetchPeriod, uncompleteItem} from '@/lib/api'
 import type {Frequency} from '@/lib/date'
+import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query'
 
 export function periodKey(frequency: Frequency, date: string) {
   return ['period', frequency, date] as const

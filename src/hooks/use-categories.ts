@@ -1,15 +1,14 @@
-import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query'
-
 import {
   type CategoryInput,
+  type ReorderCategoryRow,
   createCategory,
   deleteCategory,
   fetchCategories,
   fetchCategoryItemCount,
   reorderCategories,
-  type ReorderCategoryRow,
   updateCategory,
 } from '@/lib/api'
+import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query'
 
 export const CATEGORIES_KEY = ['categories'] as const
 

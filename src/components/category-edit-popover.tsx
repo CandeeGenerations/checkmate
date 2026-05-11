@@ -1,6 +1,3 @@
-import {useState} from 'react'
-import {toast} from 'sonner'
-
 import {Button} from '@/components/ui/button'
 import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle} from '@/components/ui/dialog'
 import {Input} from '@/components/ui/input'
@@ -11,6 +8,8 @@ import type {Category} from '@/lib/api'
 import {fetchCategoryItemCount} from '@/lib/api'
 import {CATEGORY_COLOR_CLASSES, CATEGORY_COLOR_TOKENS, type CategoryColorToken, isColorToken} from '@/lib/categories'
 import {cn} from '@/lib/utils'
+import {useState} from 'react'
+import {toast} from 'sonner'
 
 interface CategoryEditPopoverProps {
   category: Category
@@ -168,12 +167,7 @@ export function CategoryEditPopover({category, children}: CategoryEditPopoverPro
             <Button type="button" variant="outline" onClick={() => setDeleteCount(null)}>
               Cancel
             </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={del.isPending}
-            >
+            <Button type="button" variant="destructive" onClick={handleDelete} disabled={del.isPending}>
               Delete category
             </Button>
           </DialogFooter>

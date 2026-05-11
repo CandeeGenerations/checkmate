@@ -1,6 +1,6 @@
+import {and, asc, eq, isNull, max} from 'drizzle-orm'
 import type {Request, Response} from 'express'
 import {Router} from 'express'
-import {and, asc, eq, isNull, max} from 'drizzle-orm'
 
 import {db} from '../db/index.js'
 import {categories, items} from '../db/schema.js'
@@ -52,7 +52,8 @@ async function normalize(payload: ItemPayload): Promise<NormalizedItem | {error:
   if (frequency === 'quarterly') {
     const haveMonth = payload.monthOfQuarter != null
     const haveDay = payload.dayOfMonth != null
-    if (haveMonth !== haveDay) return {error: 'Quarterly assignment needs both monthOfQuarter and dayOfMonth, or neither'}
+    if (haveMonth !== haveDay)
+      return {error: 'Quarterly assignment needs both monthOfQuarter and dayOfMonth, or neither'}
     if (haveMonth && haveDay) {
       const mq = Number(payload.monthOfQuarter)
       const d = Number(payload.dayOfMonth)
@@ -83,7 +84,10 @@ async function nextSortOrder(frequency: Frequency, categoryId: number | null): P
     categoryId == null
       ? and(eq(items.frequency, frequency), isNull(items.categoryId))
       : and(eq(items.frequency, frequency), eq(items.categoryId, categoryId))
-  const [row] = await db.select({m: max(items.sortOrder)}).from(items).where(where)
+  const [row] = await db
+    .select({m: max(items.sortOrder)})
+    .from(items)
+    .where(where)
   return (row?.m ?? 0) + 1
 }
 
@@ -99,7 +103,10 @@ itemsRouter.post('/', async (req, res) => {
     return
   }
   const sortOrder = await nextSortOrder(norm.frequency, norm.categoryId)
-  const [created] = await db.insert(items).values({...norm, sortOrder}).returning()
+  const [created] = await db
+    .insert(items)
+    .values({...norm, sortOrder})
+    .returning()
   res.status(201).json(created)
 })
 
@@ -125,7 +132,13 @@ itemsRouter.put('/reorder', async (req, res) => {
     const sortOrder = Number(obj.sortOrder)
     const frequency = obj.frequency as Frequency
     if (!Number.isInteger(id) || !Number.isInteger(sortOrder) || !FREQUENCIES.includes(frequency)) continue
-    const upd: {id: number; frequency: Frequency; sortOrder: number; dayOfWeek?: number | null; categoryId?: number | null} = {
+    const upd: {
+      id: number
+      frequency: Frequency
+      sortOrder: number
+      dayOfWeek?: number | null
+      categoryId?: number | null
+    } = {
       id,
       frequency,
       sortOrder,

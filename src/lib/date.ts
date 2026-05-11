@@ -122,11 +122,7 @@ export function dueDateInPeriod(item: ItemSchedule, dateISO: string): string | n
   }
 }
 
-export function isCompletedInPeriod(
-  item: ItemSchedule,
-  completionDatesISO: string[],
-  dateISO: string,
-): boolean {
+export function isCompletedInPeriod(item: ItemSchedule, completionDatesISO: string[], dateISO: string): boolean {
   const {startISO, endISO} = periodRange(item.frequency, dateISO)
   return completionDatesISO.some((d) => d >= startISO && d <= endISO)
 }

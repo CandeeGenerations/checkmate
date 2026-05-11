@@ -1,13 +1,12 @@
-import {useSortable} from '@dnd-kit/sortable'
-import {CSS} from '@dnd-kit/utilities'
-import {GripVertical, Pencil} from 'lucide-react'
-
 import {Button} from '@/components/ui/button'
 import {Checkbox} from '@/components/ui/checkbox'
 import {useToggleCompletion} from '@/hooks/use-period'
 import type {PeriodItem} from '@/lib/api'
 import type {Frequency} from '@/lib/date'
 import {cn} from '@/lib/utils'
+import {useSortable} from '@dnd-kit/sortable'
+import {CSS} from '@dnd-kit/utilities'
+import {GripVertical, Pencil} from 'lucide-react'
 
 interface SortableItemRowProps {
   item: PeriodItem
@@ -19,7 +18,14 @@ interface SortableItemRowProps {
   variant?: 'card' | 'flat'
 }
 
-export function SortableItemRow({item, viewFrequency, date, onEdit, metaLabel, variant = 'card'}: SortableItemRowProps) {
+export function SortableItemRow({
+  item,
+  viewFrequency,
+  date,
+  onEdit,
+  metaLabel,
+  variant = 'card',
+}: SortableItemRowProps) {
   const {attributes, listeners, setNodeRef, transform, transition, isDragging} = useSortable({id: item.id})
   const toggle = useToggleCompletion(viewFrequency, date)
 
@@ -65,7 +71,12 @@ export function SortableItemRow({item, viewFrequency, date, onEdit, metaLabel, v
         {item.title}
       </button>
       {metaLabel && <span className="text-xs text-muted-foreground">{metaLabel}</span>}
-      <Button variant="ghost" size="icon" onClick={() => onEdit(item)} className="h-7 w-7 opacity-0 group-hover:opacity-100">
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => onEdit(item)}
+        className="h-7 w-7 opacity-0 group-hover:opacity-100"
+      >
         <Pencil className="h-3.5 w-3.5" />
       </Button>
     </div>

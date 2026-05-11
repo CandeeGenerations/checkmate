@@ -155,11 +155,7 @@ export function formatDateLabel(dateISO: string): string {
 }
 
 // True if any of the given completion dates fall inside the current period for this item.
-export function isCompletedInPeriod(
-  item: ItemSchedule,
-  completionDatesISO: string[],
-  dateISO: string,
-): boolean {
+export function isCompletedInPeriod(item: ItemSchedule, completionDatesISO: string[], dateISO: string): boolean {
   const {startISO, endISO} = periodRange(item.frequency, dateISO)
   return completionDatesISO.some((d) => d >= startISO && d <= endISO)
 }

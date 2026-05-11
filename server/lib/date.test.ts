@@ -1,12 +1,6 @@
 import {describe, expect, test} from 'vitest'
 
-import {
-  dueDateInPeriod,
-  isCompletedInPeriod,
-  type ItemSchedule,
-  periodRange,
-  startOfWeekISO,
-} from './date'
+import {type ItemSchedule, dueDateInPeriod, isCompletedInPeriod, periodRange, startOfWeekISO} from './date'
 
 describe('startOfWeekISO (Sunday-week-start)', () => {
   test('Sunday returns itself', () => {
@@ -93,19 +87,29 @@ describe('dueDateInPeriod', () => {
     expect(dueDateInPeriod(sched({frequency: 'quarterly'}), today)).toBeNull()
   })
   test('quarterly month-1 day-15 in Q2 = Apr 15', () => {
-    expect(dueDateInPeriod(sched({frequency: 'quarterly', monthOfQuarter: 1, dayOfMonth: 15}), today)).toBe('2026-04-15')
+    expect(dueDateInPeriod(sched({frequency: 'quarterly', monthOfQuarter: 1, dayOfMonth: 15}), today)).toBe(
+      '2026-04-15',
+    )
   })
   test('quarterly month-2 day-15 in Q2 = May 15', () => {
-    expect(dueDateInPeriod(sched({frequency: 'quarterly', monthOfQuarter: 2, dayOfMonth: 15}), today)).toBe('2026-05-15')
+    expect(dueDateInPeriod(sched({frequency: 'quarterly', monthOfQuarter: 2, dayOfMonth: 15}), today)).toBe(
+      '2026-05-15',
+    )
   })
   test('quarterly month-3 day-30 in Q2 = Jun 30', () => {
-    expect(dueDateInPeriod(sched({frequency: 'quarterly', monthOfQuarter: 3, dayOfMonth: 30}), today)).toBe('2026-06-30')
+    expect(dueDateInPeriod(sched({frequency: 'quarterly', monthOfQuarter: 3, dayOfMonth: 30}), today)).toBe(
+      '2026-06-30',
+    )
   })
   test('quarterly month-2 day-31 in Q1 (= Feb 31) clamps to Feb 28', () => {
-    expect(dueDateInPeriod(sched({frequency: 'quarterly', monthOfQuarter: 2, dayOfMonth: 31}), '2026-02-15')).toBe('2026-02-28')
+    expect(dueDateInPeriod(sched({frequency: 'quarterly', monthOfQuarter: 2, dayOfMonth: 31}), '2026-02-15')).toBe(
+      '2026-02-28',
+    )
   })
   test('quarterly month-1 day-31 in Q2 (= Apr 31) clamps to Apr 30', () => {
-    expect(dueDateInPeriod(sched({frequency: 'quarterly', monthOfQuarter: 1, dayOfMonth: 31}), today)).toBe('2026-04-30')
+    expect(dueDateInPeriod(sched({frequency: 'quarterly', monthOfQuarter: 1, dayOfMonth: 31}), today)).toBe(
+      '2026-04-30',
+    )
   })
 })
 

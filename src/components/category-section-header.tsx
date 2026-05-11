@@ -1,10 +1,9 @@
-import {ChevronDown, ChevronRight, Pencil} from 'lucide-react'
-
 import {Button} from '@/components/ui/button'
 import {useSectionCollapse} from '@/hooks/use-section-collapse'
 import type {Category} from '@/lib/api'
 import {CATEGORY_COLOR_CLASSES, isColorToken} from '@/lib/categories'
 import {cn} from '@/lib/utils'
+import {ChevronDown, ChevronRight, Pencil} from 'lucide-react'
 
 import {CategoryEditPopover} from './category-edit-popover'
 
@@ -48,7 +47,9 @@ export function CategorySectionHeader({
         aria-expanded={!collapsed}
       >
         <Chevron className={cn('shrink-0 text-muted-foreground', variant === 'flat' ? 'h-4 w-4' : 'h-3 w-3')} />
-        {category?.icon && <span className={cn('shrink-0', variant === 'flat' ? 'text-base' : 'text-sm')}>{category.icon}</span>}
+        {category?.icon && (
+          <span className={cn('shrink-0', variant === 'flat' ? 'text-base' : 'text-sm')}>{category.icon}</span>
+        )}
         <span
           className={cn(
             'truncate font-semibold uppercase tracking-wider',

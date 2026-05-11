@@ -1,5 +1,3 @@
-import {useState} from 'react'
-
 import {ExportPdfButton} from '@/components/export-pdf-button'
 import {ItemDialog} from '@/components/item-dialog'
 import {SectionedFlatList} from '@/components/sectioned-flat-list'
@@ -7,6 +5,7 @@ import {Spinner} from '@/components/ui/spinner'
 import {usePeriod} from '@/hooks/use-period'
 import type {Item, PeriodItem} from '@/lib/api'
 import {formatDayLabel, todayISO} from '@/lib/date'
+import {useState} from 'react'
 
 const FREQ_LABEL: Record<PeriodItem['frequency'], string> = {
   daily: '',

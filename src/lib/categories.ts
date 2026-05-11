@@ -18,12 +18,27 @@ interface ColorClasses {
 
 export const CATEGORY_COLOR_CLASSES: Record<CategoryColorToken, ColorClasses> = {
   red: {headerBg: 'bg-red-100/60', headerText: 'text-red-900', swatch: 'bg-red-400', ring: 'ring-red-200'},
-  orange: {headerBg: 'bg-orange-100/60', headerText: 'text-orange-900', swatch: 'bg-orange-400', ring: 'ring-orange-200'},
+  orange: {
+    headerBg: 'bg-orange-100/60',
+    headerText: 'text-orange-900',
+    swatch: 'bg-orange-400',
+    ring: 'ring-orange-200',
+  },
   amber: {headerBg: 'bg-amber-100/60', headerText: 'text-amber-900', swatch: 'bg-amber-400', ring: 'ring-amber-200'},
-  emerald: {headerBg: 'bg-emerald-100/60', headerText: 'text-emerald-900', swatch: 'bg-emerald-400', ring: 'ring-emerald-200'},
+  emerald: {
+    headerBg: 'bg-emerald-100/60',
+    headerText: 'text-emerald-900',
+    swatch: 'bg-emerald-400',
+    ring: 'ring-emerald-200',
+  },
   sky: {headerBg: 'bg-sky-100/60', headerText: 'text-sky-900', swatch: 'bg-sky-400', ring: 'ring-sky-200'},
   blue: {headerBg: 'bg-blue-100/60', headerText: 'text-blue-900', swatch: 'bg-blue-400', ring: 'ring-blue-200'},
-  violet: {headerBg: 'bg-violet-100/60', headerText: 'text-violet-900', swatch: 'bg-violet-400', ring: 'ring-violet-200'},
+  violet: {
+    headerBg: 'bg-violet-100/60',
+    headerText: 'text-violet-900',
+    swatch: 'bg-violet-400',
+    ring: 'ring-violet-200',
+  },
   rose: {headerBg: 'bg-rose-100/60', headerText: 'text-rose-900', swatch: 'bg-rose-400', ring: 'ring-rose-200'},
 }
 

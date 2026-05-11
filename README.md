@@ -30,8 +30,8 @@ The script prompts for the password, generates the JWT secret, populates `~/Libr
 
 ```yaml
 # ~/.cloudflared/config.yml — add ABOVE the http_status:404 catch-all
-  - hostname: checkmate.cgen.cc
-    service: http://localhost:5184
+- hostname: checkmate.cgen.cc
+  service: http://localhost:5184
 ```
 
 Then:
@@ -45,11 +45,11 @@ The app is reachable at https://checkmate.cgen.cc.
 
 ## Environment variables
 
-| Var | Required | Notes |
-|---|---|---|
-| `AUTH_PASSWORD_HASH` | yes | bcrypt hash. Generate via `pnpm auth:hash`. |
-| `JWT_SECRET` | yes | 32+ random chars. `openssl rand -hex 32`. |
-| `JWT_EXPIRY` | no | Default `7d`. Format `Nd \| Nh \| Nm`. |
-| `PORT` | no | Express port. Default `5186`. |
+| Var                  | Required | Notes                                       |
+| -------------------- | -------- | ------------------------------------------- |
+| `AUTH_PASSWORD_HASH` | yes      | bcrypt hash. Generate via `pnpm auth:hash`. |
+| `JWT_SECRET`         | yes      | 32+ random chars. `openssl rand -hex 32`.   |
+| `JWT_EXPIRY`         | no       | Default `7d`. Format `Nd \| Nh \| Nm`.      |
+| `PORT`               | no       | Express port. Default `5186`.               |
 
 When `AUTH_PASSWORD_HASH` is unset, the auth middleware passes everything through (handy for local dev without setting up creds).

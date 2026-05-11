@@ -1,7 +1,3 @@
-import {Check, ChevronDown, Plus, X} from 'lucide-react'
-import {useMemo, useState} from 'react'
-import {toast} from 'sonner'
-
 import {Button} from '@/components/ui/button'
 import {Input} from '@/components/ui/input'
 import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover'
@@ -9,6 +5,9 @@ import {useCategories, useCreateCategory} from '@/hooks/use-categories'
 import type {Category} from '@/lib/api'
 import {CATEGORY_COLOR_CLASSES, isColorToken} from '@/lib/categories'
 import {cn} from '@/lib/utils'
+import {Check, ChevronDown, Plus, X} from 'lucide-react'
+import {useMemo, useState} from 'react'
+import {toast} from 'sonner'
 
 interface CategoryComboboxProps {
   value: number | null

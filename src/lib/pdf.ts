@@ -3,7 +3,7 @@ import {jsPDF} from 'jspdf'
 import type {Category, PeriodItem, PeriodView} from './api'
 import {groupBySection} from './categories'
 import type {Frequency} from './date'
-import {formatDateLabel, formatDayLabel, WEEKDAY_SHORT} from './date'
+import {WEEKDAY_SHORT, formatDateLabel, formatDayLabel} from './date'
 
 const TITLE_FONT = 18
 const SECTION_FONT = 11
