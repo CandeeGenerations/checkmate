@@ -1,4 +1,5 @@
 import {Sentry} from '@/lib/sentry'
+
 import {Toaster} from '@/components/ui/sonner'
 import {AppShell} from '@/pages/app-shell'
 import {DailyPage} from '@/pages/daily-page'

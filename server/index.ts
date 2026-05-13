@@ -7,8 +7,8 @@ import {fileURLToPath} from 'url'
 
 // Touch the DB module so the connection opens at boot.
 import './db/index.js'
-import {requireAuth} from './middleware/auth.js'
 import {Sentry} from './lib/sentry.js'
+import {requireAuth} from './middleware/auth.js'
 import {authRouter} from './routes/auth.js'
 import {categoriesRouter} from './routes/categories.js'
 import {completionsRouter} from './routes/completions.js'

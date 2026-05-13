@@ -1,11 +1,11 @@
 import './lib/sentry'
+import {Sentry} from './lib/sentry'
 
 import {StrictMode} from 'react'
 import {createRoot} from 'react-dom/client'
 
 import App from './App.tsx'
 import './index.css'
-import {Sentry} from './lib/sentry'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

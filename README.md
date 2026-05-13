@@ -53,12 +53,12 @@ Both server and frontend are wired into Sentry; the SDKs are inert until the env
 
 **Env var topology** — different keys live in different places:
 
-| Var | Where | Why |
-|---|---|---|
-| `SENTRY_DSN_SERVER` | `~/Library/LaunchAgents/cc.cgen.checkmate.plist` | Runtime; per-project |
-| `SENTRY_ENVIRONMENT`, `SENTRY_RELEASE` | plist | Runtime; per-project (`SENTRY_RELEASE` is rewritten by `scripts/deploy.sh`) |
-| `VITE_SENTRY_DSN`, `SENTRY_PROJECT_WEB` | repo's `.env` (gitignored) | Build-time; per-project |
-| `SENTRY_AUTH_TOKEN`, `SENTRY_ORG` | `~/.zshrc` | Build-time; **org-level, shared across every cgen app** |
+| Var                                     | Where                                            | Why                                                                         |
+| --------------------------------------- | ------------------------------------------------ | --------------------------------------------------------------------------- |
+| `SENTRY_DSN_SERVER`                     | `~/Library/LaunchAgents/cc.cgen.checkmate.plist` | Runtime; per-project                                                        |
+| `SENTRY_ENVIRONMENT`, `SENTRY_RELEASE`  | plist                                            | Runtime; per-project (`SENTRY_RELEASE` is rewritten by `scripts/deploy.sh`) |
+| `VITE_SENTRY_DSN`, `SENTRY_PROJECT_WEB` | repo's `.env` (gitignored)                       | Build-time; per-project                                                     |
+| `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`       | `~/.zshrc`                                       | Build-time; **org-level, shared across every cgen app**                     |
 
 Per-project keys never go in `~/.zshrc` — multiple cgen projects share that file and would collide.
 

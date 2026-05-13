@@ -6,7 +6,7 @@ Accepted.
 
 ## Context
 
-Checkmate is a single-operator personal to-do tracker. The items the user writes (e.g. *"call dentist"*, *"check on Mom"*) are personal in tone and not intended for third parties. Category names are similarly user-authored. None of this is "PII" in the regulatory sense, but it is the kind of content a user reasonably expects to live only on their own machine and never leave it.
+Checkmate is a single-operator personal to-do tracker. The items the user writes (e.g. _"call dentist"_, _"check on Mom"_) are personal in tone and not intended for third parties. Category names are similarly user-authored. None of this is "PII" in the regulatory sense, but it is the kind of content a user reasonably expects to live only on their own machine and never leave it.
 
 Sentry, by default, attaches a fair amount of request context to error events: request body, query string, cookies, and breadcrumb data containing function input/output. With no scrubbing, an error in `POST /api/items` would ship the item title to Sentry.
 
