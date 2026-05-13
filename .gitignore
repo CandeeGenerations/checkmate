@@ -30,6 +30,7 @@ dist-ssr
 
 .claude/settings.local.json
 .env
+.env.deploy
 
 *.pid
 /data

@@ -4,6 +4,7 @@ import {Router} from 'express'
 import rateLimit from 'express-rate-limit'
 import jwt from 'jsonwebtoken'
 
+import {asyncHandler} from '../lib/asyncHandler.js'
 import {authEnabled} from '../middleware/auth.js'
 
 export const authRouter = Router()
@@ -27,37 +28,41 @@ function parseExpiry(expiry: string): number {
   return 7 * 24 * 60 * 60 * 1000
 }
 
-authRouter.post('/login', loginLimiter, async (req: Request, res: Response) => {
-  if (!authEnabled) {
+authRouter.post(
+  '/login',
+  loginLimiter,
+  asyncHandler(async (req: Request, res: Response) => {
+    if (!authEnabled) {
+      res.json({success: true})
+      return
+    }
+
+    const {password} = req.body
+    if (!password || typeof password !== 'string') {
+      res.status(400).json({error: 'Password is required'})
+      return
+    }
+
+    const valid = await bcrypt.compare(password, process.env.AUTH_PASSWORD_HASH!)
+    if (!valid) {
+      res.status(401).json({error: 'Invalid password'})
+      return
+    }
+
+    const expiry = process.env.JWT_EXPIRY || '7d'
+    const maxAge = parseExpiry(expiry)
+    const expiresInSeconds = Math.floor(maxAge / 1000)
+    const token = jwt.sign({authenticated: true}, process.env.JWT_SECRET!, {expiresIn: expiresInSeconds})
+
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV !== 'development',
+      sameSite: 'strict',
+      maxAge,
+    })
     res.json({success: true})
-    return
-  }
-
-  const {password} = req.body
-  if (!password || typeof password !== 'string') {
-    res.status(400).json({error: 'Password is required'})
-    return
-  }
-
-  const valid = await bcrypt.compare(password, process.env.AUTH_PASSWORD_HASH!)
-  if (!valid) {
-    res.status(401).json({error: 'Invalid password'})
-    return
-  }
-
-  const expiry = process.env.JWT_EXPIRY || '7d'
-  const maxAge = parseExpiry(expiry)
-  const expiresInSeconds = Math.floor(maxAge / 1000)
-  const token = jwt.sign({authenticated: true}, process.env.JWT_SECRET!, {expiresIn: expiresInSeconds})
-
-  res.cookie('token', token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV !== 'development',
-    sameSite: 'strict',
-    maxAge,
-  })
-  res.json({success: true})
-})
+  }),
+)
 
 authRouter.post('/logout', (_req: Request, res: Response) => {
   res.clearCookie('token', {

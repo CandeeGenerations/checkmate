@@ -6,9 +6,10 @@
     <string>cc.cgen.checkmate</string>
     <key>ProgramArguments</key>
     <array>
-        <string>/Users/cgen01/.local/share/fnm/node-versions/v24.14.0/installation/bin/node</string>
-        <string>/Users/cgen01/.local/share/fnm/node-versions/v24.14.0/installation/lib/node_modules/pnpm/bin/pnpm.cjs</string>
-        <string>dev</string>
+        <string>/Users/cgen01/repos/cgen/checkmate/node_modules/.bin/tsx</string>
+        <string>--import</string>
+        <string>./server/lib/sentry.ts</string>
+        <string>server/index.ts</string>
     </array>
     <key>WorkingDirectory</key>
     <string>/Users/cgen01/repos/cgen/checkmate</string>
@@ -24,6 +25,8 @@
     <dict>
         <key>PATH</key>
         <string>/Users/cgen01/.local/share/fnm/node-versions/v24.14.0/installation/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <key>NODE_ENV</key>
+        <string>production</string>
         <key>AUTH_PASSWORD_HASH</key>
         <string>__REPLACE_AUTH_PASSWORD_HASH__</string>
         <key>JWT_SECRET</key>
@@ -32,6 +35,12 @@
         <string>7d</string>
         <key>PORT</key>
         <string>5186</string>
+        <key>SENTRY_DSN_SERVER</key>
+        <string>__REPLACE_SENTRY_DSN_SERVER__</string>
+        <key>SENTRY_ENVIRONMENT</key>
+        <string>production</string>
+        <key>SENTRY_RELEASE</key>
+        <string>__REPLACE_SENTRY_RELEASE__</string>
     </dict>
 </dict>
 </plist>

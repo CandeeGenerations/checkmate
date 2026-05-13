@@ -55,11 +55,15 @@ JWT_SECRET=$(openssl rand -hex 32)
 echo "  ✓ generated"
 
 echo "Step 3/4: writing $PLIST_TARGET"
+read -p "  Sentry server DSN (press enter to skip): " SENTRY_DSN_INPUT
+SENTRY_DSN_VALUE=${SENTRY_DSN_INPUT:-}
 ESCAPED_HASH=$(printf '%s\n' "$PASSWORD_HASH" | sed 's/[\/&]/\\&/g')
 ESCAPED_SECRET=$(printf '%s\n' "$JWT_SECRET" | sed 's/[\/&]/\\&/g')
+ESCAPED_DSN=$(printf '%s\n' "$SENTRY_DSN_VALUE" | sed 's/[\/&]/\\&/g')
 sed \
   -e "s/__REPLACE_AUTH_PASSWORD_HASH__/$ESCAPED_HASH/" \
   -e "s/__REPLACE_JWT_SECRET__/$ESCAPED_SECRET/" \
+  -e "s/__REPLACE_SENTRY_DSN_SERVER__/$ESCAPED_DSN/" \
   "$PLIST_TEMPLATE" > "$PLIST_TARGET"
 chmod 600 "$PLIST_TARGET"
 echo "  ✓ written ($PLIST_TARGET)"
