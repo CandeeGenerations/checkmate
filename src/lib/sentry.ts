@@ -30,7 +30,7 @@ if (dsn) {
     sendDefaultPii: false,
     // 401 cookie expiry surfaces in TanStack Query as `Error("Unauthorized")`;
     // it is product behavior, not a bug. AbortError is route-change fetch cancellation.
-    ignoreErrors: ['AbortError', 'Unauthorized'],
+    ignoreErrors: ['AbortError', 'Unauthorized', 'Invalid password'],
     beforeSend: scrubEvent,
     beforeSendTransaction: scrubEvent,
     beforeBreadcrumb: scrubBreadcrumb,
