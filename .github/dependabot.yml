@@ -11,6 +11,10 @@ updates:
       separator: '-' # Use hyphens to separate branch name segments
     schedule:
       interval: 'monthly'
+    ignore:
+      # typescript-eslint peer range is `<6.1.0`; TS 7.x (native port) breaks lint.
+      - dependency-name: 'typescript'
+        update-types: ['version-update:semver-major']
     groups:
       minor-updates:
         update-types:
