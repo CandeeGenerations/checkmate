@@ -21,14 +21,12 @@ jobs:
     if: github.event_name != 'merge_group'
     steps:
       - uses: actions/checkout@v6
-      - uses: pnpm/action-setup@v6
-        with:
-          standalone: true
       - name: Set up Node
         uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
-          cache: pnpm
+      - name: Enable Corepack
+        run: corepack enable
       - name: Install deps
         run: pnpm install --ignore-scripts
       - name: Run Prettier
@@ -40,14 +38,12 @@ jobs:
     if: github.event_name != 'merge_group'
     steps:
       - uses: actions/checkout@v6
-      - uses: pnpm/action-setup@v6
-        with:
-          standalone: true
       - name: Set up Node
         uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
-          cache: pnpm
+      - name: Enable Corepack
+        run: corepack enable
       - name: Install deps
         run: pnpm install --ignore-scripts
       - name: Run ESLint
